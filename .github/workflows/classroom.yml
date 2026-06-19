@@ -1,0 +1,239 @@
+name: Autograding Tests
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc make
+
+      - name: Build all problems
+        run: |
+          for d in problem*/; do make -C "$d" build; done
+
+      # ── Problem 0: mmap/find-substrings-in-file ───────────────────────────
+      - name: "P0 | find 'hello' → positions 0 12"
+        id: p0-t1
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P0 | find 'hello' → positions 0 12"
+          command: ./problem0-mmap-find-substrings/solution problem0-mmap-find-substrings/tests/1.txt hello
+          input: ""
+          expected-output: |
+            0
+            12
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P0 | find 'abc' → positions 0 3"
+        id: p0-t2
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P0 | find 'abc' → positions 0 3"
+          command: ./problem0-mmap-find-substrings/solution problem0-mmap-find-substrings/tests/2.txt abc
+          input: ""
+          expected-output: |
+            0
+            3
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P0 | find 'xyz' → no match"
+        id: p0-t3
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P0 | find 'xyz' → no match"
+          command: ./problem0-mmap-find-substrings/solution problem0-mmap-find-substrings/tests/3.txt xyz
+          input: ""
+          expected-output: ""
+          comparison-method: exact
+          timeout: 10
+
+      # ── Problem 1: fork/proc-print-numbers ────────────────────────────────
+      - name: "P1 | N=1 → '1'"
+        id: p1-t1
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P1 | N=1 → '1'"
+          command: ./problem1-fork-proc-print-numbers/solution 1
+          input: ""
+          expected-output: "1"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P1 | N=3 → '1 2 3'"
+        id: p1-t2
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P1 | N=3 → '1 2 3'"
+          command: ./problem1-fork-proc-print-numbers/solution 3
+          input: ""
+          expected-output: "1 2 3"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P1 | N=5 → '1 2 3 4 5'"
+        id: p1-t3
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P1 | N=5 → '1 2 3 4 5'"
+          command: ./problem1-fork-proc-print-numbers/solution 5
+          input: ""
+          expected-output: "1 2 3 4 5"
+          comparison-method: exact
+          timeout: 10
+
+      # ── Problem 2: exec/exec-python ───────────────────────────────────────
+      - name: "P2 | 2+3 = 5"
+        id: p2-t1
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P2 | 2+3 = 5"
+          command: ./problem2-exec-exec-python/solution
+          input: "2+3"
+          expected-output: "5"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P2 | 10*5-3 = 47"
+        id: p2-t2
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P2 | 10*5-3 = 47"
+          command: ./problem2-exec-exec-python/solution
+          input: "10*5-3"
+          expected-output: "47"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P2 | 2**10 = 1024"
+        id: p2-t3
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P2 | 2**10 = 1024"
+          command: ./problem2-exec-exec-python/solution
+          input: "2**10"
+          expected-output: "1024"
+          comparison-method: exact
+          timeout: 10
+
+      # ── Problem 3: pipe/connect-2-processes ───────────────────────────────
+      - name: "P3 | cat|cat passthrough"
+        id: p3-t1
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P3 | cat|cat passthrough"
+          command: ./problem3-pipe-connect-2-processes/solution cat cat
+          input: "hello"
+          expected-output: "hello"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P3 | cat|sort sorts lines"
+        id: p3-t2
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P3 | cat|sort sorts lines"
+          command: ./problem3-pipe-connect-2-processes/solution cat sort
+          input: "banana\napple\ncherry"
+          expected-output: "apple\nbanana\ncherry"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P3 | cat|cat multiword line"
+        id: p3-t3
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P3 | cat|cat multiword line"
+          command: ./problem3-pipe-connect-2-processes/solution cat cat
+          input: "the quick brown fox"
+          expected-output: "the quick brown fox"
+          comparison-method: exact
+          timeout: 10
+
+      # ── Problem 4: sockets/tcp-client ─────────────────────────────────────
+      - name: "P4 | TCP exchange (start server)"
+        run: |
+          python3 problem4-sockets-tcp-client/tests/server.py 54321 3 &
+          echo $! > /tmp/p4_server.pid
+          sleep 0.3
+
+      - name: "P4 | TCP: send [1,2,3] receive [2,3,4]"
+        id: p4-t1
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P4 | TCP: send [1,2,3] receive [2,3,4]"
+          command: ./problem4-sockets-tcp-client/solution 127.0.0.1 54321
+          input: "1\n2\n3\n"
+          expected-output: "2\n3\n4"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P4 | TCP exchange (start server 2)"
+        run: |
+          python3 problem4-sockets-tcp-client/tests/server.py 54322 3 &
+          echo $! > /tmp/p4_server2.pid
+          sleep 0.3
+
+      - name: "P4 | TCP: negative numbers"
+        id: p4-t2
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P4 | TCP: negative numbers"
+          command: ./problem4-sockets-tcp-client/solution 127.0.0.1 54322
+          input: "10\n-5\n0\n"
+          expected-output: "11\n-4\n1"
+          comparison-method: exact
+          timeout: 10
+
+      - name: "P4 | TCP exchange (start server 3)"
+        run: |
+          python3 problem4-sockets-tcp-client/tests/server.py 54323 1 &
+          echo $! > /tmp/p4_server3.pid
+          sleep 0.3
+
+      - name: "P4 | TCP: server closes connection → exit 0"
+        id: p4-t3
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: "P4 | TCP: server closes connection → exit 0"
+          command: ./problem4-sockets-tcp-client/solution 127.0.0.1 54323
+          input: "100\n"
+          expected-output: "101"
+          comparison-method: exact
+          timeout: 10
+
+      # ── Reporter ───────────────────────────────────────────────────────────
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          P0-T1_RESULTS: "${{ steps.p0-t1.outputs.result }}"
+          P0-T2_RESULTS: "${{ steps.p0-t2.outputs.result }}"
+          P0-T3_RESULTS: "${{ steps.p0-t3.outputs.result }}"
+          P1-T1_RESULTS: "${{ steps.p1-t1.outputs.result }}"
+          P1-T2_RESULTS: "${{ steps.p1-t2.outputs.result }}"
+          P1-T3_RESULTS: "${{ steps.p1-t3.outputs.result }}"
+          P2-T1_RESULTS: "${{ steps.p2-t1.outputs.result }}"
+          P2-T2_RESULTS: "${{ steps.p2-t2.outputs.result }}"
+          P2-T3_RESULTS: "${{ steps.p2-t3.outputs.result }}"
+          P3-T1_RESULTS: "${{ steps.p3-t1.outputs.result }}"
+          P3-T2_RESULTS: "${{ steps.p3-t2.outputs.result }}"
+          P3-T3_RESULTS: "${{ steps.p3-t3.outputs.result }}"
+          P4-T1_RESULTS: "${{ steps.p4-t1.outputs.result }}"
+          P4-T2_RESULTS: "${{ steps.p4-t2.outputs.result }}"
+          P4-T3_RESULTS: "${{ steps.p4-t3.outputs.result }}"
+        with:
+          runners: p0-t1,p0-t2,p0-t3,p1-t1,p1-t2,p1-t3,p2-t1,p2-t2,p2-t3,p3-t1,p3-t2,p3-t3,p4-t1,p4-t2,p4-t3

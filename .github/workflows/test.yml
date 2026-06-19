@@ -1,0 +1,60 @@
+# name: Autograding
+
+# on:
+#   push:
+#     branches: ["**"]
+#   pull_request:
+#     branches: ["**"]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Install build tools
+#         run: |
+#           sudo apt-get update -qq
+#           sudo apt-get install -y gcc make
+
+#       - name: Problem 0 — mmap/find-substrings-in-file
+#         id: p0
+#         run: make -C problem0-mmap-find-substrings test
+#         continue-on-error: true
+
+#       - name: Problem 1 — fork/proc-print-numbers
+#         id: p1
+#         run: make -C problem1-fork-proc-print-numbers test
+#         continue-on-error: true
+
+#       - name: Problem 2 — exec/exec-python
+#         id: p2
+#         run: make -C problem2-exec-exec-python test
+#         continue-on-error: true
+
+#       - name: Problem 3 — pipe/connect-2-processes
+#         id: p3
+#         run: make -C problem3-pipe-connect-2-processes test
+#         continue-on-error: true
+
+#       - name: Problem 4 — sockets/tcp-client
+#         id: p4
+#         run: make -C problem4-sockets-tcp-client test
+#         continue-on-error: true
+
+#       - name: Check results
+#         if: always()
+#         run: |
+#           results=(
+#             "Problem 0: ${{ steps.p0.outcome }}"
+#             "Problem 1: ${{ steps.p1.outcome }}"
+#             "Problem 2: ${{ steps.p2.outcome }}"
+#             "Problem 3: ${{ steps.p3.outcome }}"
+#             "Problem 4: ${{ steps.p4.outcome }}"
+#           )
+#           failed=0
+#           for r in "${results[@]}"; do
+#             echo "$r"
+#             [[ "$r" == *"failure"* ]] && failed=1
+#           done
+#           exit $failed

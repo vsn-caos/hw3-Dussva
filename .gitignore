@@ -1,0 +1,4 @@
+problem*/solution
+*.o
+__pycache__/
+*.pyc
